@@ -1,0 +1,1462 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>2ª Bateria — Farmacologia Clínica</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#050907;
+  --surface:#0A1611;
+  --surface-2:#0E1E17;
+  --surface-3:#12271E;
+  --line:#18302A;
+  --line-2:#224036;
+  --primary:#14553B;
+  --primary-h:#1A6A4A;
+  --accent:#6FD8BC;
+  --accent-dim:rgba(111,216,188,.12);
+  --text:#E2EDE8;
+  --text-2:#B7CAC1;
+  --muted:#7F978C;
+  --ok:#3FBF7F;
+  --ok-bg:rgba(63,191,127,.09);
+  --err:#E0575C;
+  --err-bg:rgba(224,87,92,.09);
+  --r:10px;
+  --r-s:7px;
+  --sans:'IBM Plex Sans',system-ui,-apple-system,'Segoe UI',Roboto,Arial,sans-serif;
+  --mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{min-height:100%}
+body{
+  background:var(--bg);
+  color:var(--text);
+  font-family:var(--sans);
+  font-size:16px;
+  line-height:1.6;
+  -webkit-font-smoothing:antialiased;
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+button{font-family:inherit;font-size:inherit;color:inherit;background:none;border:none;cursor:pointer}
+button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+/* ---------- Top bar ---------- */
+.topbar{
+  position:sticky;top:0;z-index:30;
+  background:rgba(5,9,7,.92);
+  backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+  border-bottom:1px solid var(--line);
+  padding-top:env(safe-area-inset-top,0px);
+}
+.topbar-in{
+  max-width:880px;margin:0 auto;
+  display:flex;align-items:center;gap:8px;
+  padding:10px 18px;
+}
+.brand{font-weight:600;font-size:14px;color:var(--text-2);letter-spacing:.01em;white-space:nowrap;margin-right:auto}
+.brand b{color:var(--accent);font-weight:600}
+.tb-btn{
+  display:inline-flex;align-items:center;gap:6px;
+  height:34px;padding:0 12px;border-radius:var(--r-s);
+  border:1px solid var(--line-2);color:var(--text-2);font-size:13.5px;
+  transition:border-color .15s,color .15s,background .15s;
+  white-space:nowrap;
+}
+.tb-btn:hover{border-color:var(--accent);color:var(--text)}
+.tb-btn.primary{background:var(--primary);border-color:var(--primary);color:#EAF6F0}
+.tb-btn.primary:hover{background:var(--primary-h);border-color:var(--primary-h)}
+.tb-btn[aria-expanded="true"]{border-color:var(--accent);color:var(--accent)}
+.counter{font-family:var(--mono);font-size:13px;color:var(--muted);padding:0 6px;white-space:nowrap}
+.counter strong{color:var(--text);font-weight:500}
+.progress{height:2px;background:var(--line);position:relative}
+.progress>i{position:absolute;left:0;top:0;bottom:0;background:var(--accent);width:0;transition:width .3s ease}
+.hide-sm{display:inline}
+@media (max-width:640px){
+  .hide-sm{display:none}
+  .topbar-in{padding:9px 12px;gap:5px}
+  .tb-btn{padding:0 9px;font-size:12.5px}
+  .brand{font-size:13px}
+  .counter{padding:0 2px;font-size:12px}
+}
+
+@media (max-width:440px){
+  .brand{display:none}
+  .topbar-in{justify-content:space-between}
+}
+
+/* ---------- Map ---------- */
+.map{
+  position:absolute;right:max(12px,calc((100vw - 880px)/2 + 18px));top:calc(100% + 8px);
+  width:min(340px,calc(100vw - 24px));
+  background:var(--surface);border:1px solid var(--line-2);border-radius:var(--r);
+  padding:14px;display:none;box-shadow:0 18px 40px rgba(0,0,0,.55);
+}
+.map.open{display:block}
+.map-filters{display:flex;gap:6px;margin-bottom:12px}
+.chip{font-size:12.5px;padding:4px 10px;border-radius:999px;border:1px solid var(--line-2);color:var(--muted)}
+.chip.on{border-color:var(--accent);color:var(--accent);background:var(--accent-dim)}
+.map-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+.cell{
+  font-family:var(--mono);font-size:12.5px;height:34px;border-radius:6px;
+  border:1px solid var(--line-2);color:var(--text-2);background:var(--surface-2)
+}
+.cell:hover{border-color:var(--accent)}
+.cell.ok{border-color:rgba(63,191,127,.55);color:var(--ok);background:var(--ok-bg)}
+.cell.err{border-color:rgba(224,87,92,.55);color:var(--err);background:var(--err-bg)}
+.cell.cur{box-shadow:0 0 0 2px var(--accent)}
+.cell.dim{opacity:.35}
+.map-legend{display:flex;gap:14px;margin-top:12px;font-size:12px;color:var(--muted)}
+.map-legend span::before{content:"";display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:6px;vertical-align:1px;border:1px solid var(--line-2)}
+.map-legend .l-ok::before{background:var(--ok);border-color:var(--ok)}
+.map-legend .l-err::before{background:var(--err);border-color:var(--err)}
+.map-empty{font-size:13px;color:var(--muted);padding:8px 2px}
+
+/* ---------- Layout ---------- */
+main{max-width:880px;margin:0 auto;padding:36px 18px 72px}
+@media (max-width:640px){main{padding:22px 12px 56px}}
+.view{display:none}
+.view.on{display:block}
+
+/* ---------- Start ---------- */
+.start{
+  min-height:calc(100vh - 170px);display:flex;flex-direction:column;justify-content:center;
+  max-width:560px;
+}
+.start h1{font-size:clamp(34px,6vw,52px);line-height:1.08;font-weight:600;letter-spacing:-.02em;margin-bottom:18px}
+.start h1 span{display:block;color:var(--accent);font-weight:500}
+.start p{color:var(--text-2);max-width:48ch;margin-bottom:28px}
+.stats{display:flex;gap:28px;margin-bottom:34px;padding:16px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.stat .n{font-family:var(--mono);font-size:26px;font-weight:500;color:var(--text);line-height:1.1}
+.stat .l{font-size:13px;color:var(--muted)}
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  height:46px;padding:0 22px;border-radius:var(--r-s);font-weight:500;
+  border:1px solid var(--line-2);color:var(--text);transition:background .15s,border-color .15s
+}
+.btn:hover:not(:disabled){border-color:var(--accent)}
+.btn.primary{background:var(--primary);border-color:var(--primary);color:#EFF8F3}
+.btn.primary:hover:not(:disabled){background:var(--primary-h);border-color:var(--primary-h)}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.btn-row{display:flex;flex-wrap:wrap;gap:10px}
+.keys{margin-top:34px;font-size:13px;color:var(--muted);display:flex;flex-wrap:wrap;gap:8px 18px}
+kbd{
+  font-family:var(--mono);font-size:11.5px;padding:2px 6px;border:1px solid var(--line-2);border-bottom-width:2px;
+  border-radius:4px;color:var(--text-2);background:var(--surface-2);margin-right:4px
+}
+
+/* ---------- Question ---------- */
+.q-head{display:flex;align-items:baseline;gap:14px;margin-bottom:18px;flex-wrap:wrap}
+.q-num{font-family:var(--mono);font-size:13px;color:var(--accent)}
+.q-num em{font-style:normal;color:var(--muted)}
+.mode-tag{font-family:var(--mono);font-size:11.5px;color:var(--err);border:1px solid rgba(224,87,92,.4);border-radius:4px;padding:1px 7px}
+.q-card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:28px 30px}
+@media (max-width:640px){.q-card{padding:20px 16px}}
+.q-case{color:var(--text-2);font-size:16px;line-height:1.72;max-width:70ch}
+.q-ask{margin-top:18px;font-weight:600;font-size:16.5px;color:var(--text);max-width:70ch}
+.opts{margin-top:22px;display:flex;flex-direction:column;gap:9px}
+.opt{
+  display:flex;gap:14px;align-items:flex-start;text-align:left;width:100%;
+  padding:13px 16px;border-radius:var(--r-s);border:1px solid var(--line-2);background:var(--surface-2);
+  transition:border-color .15s,background .15s;line-height:1.5
+}
+.opt:hover:not([disabled]){border-color:var(--accent);background:var(--surface-3)}
+.opt[disabled]{cursor:default}
+.opt .k{
+  flex:none;font-family:var(--mono);font-size:13px;font-weight:500;width:26px;height:26px;border-radius:5px;
+  display:grid;place-items:center;border:1px solid var(--line-2);color:var(--text-2);margin-top:-1px
+}
+.opt .t{color:var(--text)}
+.opt.correct{border-color:var(--ok);background:var(--ok-bg)}
+.opt.correct .k{background:var(--ok);border-color:var(--ok);color:#04130B}
+.opt.wrong{border-color:var(--err);background:var(--err-bg)}
+.opt.wrong .k{background:var(--err);border-color:var(--err);color:#1A0506}
+.opt.faded{opacity:.55}
+
+/* ---------- Feedback ---------- */
+.fb{margin-top:22px;border-top:1px solid var(--line);padding-top:20px;display:none}
+.fb.on{display:block;animation:fbIn .25s ease}
+@keyframes fbIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.fb.on{animation:none}.progress>i{transition:none}}
+.fb-status{display:flex;align-items:center;flex-wrap:wrap;gap:10px;font-weight:600;margin-bottom:12px}
+.fb-status .dot{width:9px;height:9px;border-radius:50%}
+.fb-status.ok{color:var(--ok)}.fb-status.ok .dot{background:var(--ok)}
+.fb-status.err{color:var(--err)}.fb-status.err .dot{background:var(--err)}
+.fb-status .gab{font-family:var(--mono);font-weight:500;font-size:13px;color:var(--muted);margin-left:auto}
+.fb-block{margin-top:14px}
+.fb-block h4{font-size:13px;font-weight:600;color:var(--accent);margin-bottom:6px;letter-spacing:.01em}
+.fb-block p{color:var(--text-2);font-size:15px;max-width:72ch}
+.fb-block p b{color:var(--text);font-weight:600}
+.fb-list{list-style:none;display:flex;flex-direction:column;gap:6px}
+.fb-list li{display:flex;gap:10px;font-size:14.5px;color:var(--text-2)}
+.fb-list li .k{flex:none;font-family:var(--mono);font-size:12.5px;color:var(--err);width:18px;padding-top:1px}
+
+/* ---------- Nav ---------- */
+.q-nav{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:18px}
+.q-nav .hint{font-size:12.5px;color:var(--muted)}
+@media (max-width:640px){.q-nav .hint{display:none}}
+
+/* ---------- Result ---------- */
+.res{max-width:620px}
+.res h2{font-size:15px;font-weight:500;color:var(--muted);margin-bottom:6px}
+.res .pct{font-family:var(--mono);font-size:clamp(64px,14vw,104px);font-weight:500;line-height:1;letter-spacing:-.03em;color:var(--text)}
+.res .pct small{font-size:.38em;color:var(--muted);margin-left:4px}
+.res .verdict{color:var(--text-2);margin:14px 0 26px;max-width:52ch}
+.res-bar{display:flex;height:6px;border-radius:3px;overflow:hidden;background:var(--line);margin-bottom:22px}
+.res-bar i{display:block;height:100%}
+.res-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:30px}
+.res-cell{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-s);padding:14px 16px}
+.res-cell .n{font-family:var(--mono);font-size:26px;font-weight:500;line-height:1.1}
+.res-cell .l{font-size:13px;color:var(--muted)}
+.res-cell.ok .n{color:var(--ok)}
+.res-cell.err .n{color:var(--err)}
+
+/* ---------- Modal ---------- */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.65);display:none;align-items:center;justify-content:center;z-index:50;padding:18px}
+.modal-bg.open{display:flex}
+.modal{background:var(--surface);border:1px solid var(--line-2);border-radius:var(--r);padding:24px;max-width:420px;width:100%}
+.modal h3{font-size:17px;font-weight:600;margin-bottom:8px}
+.modal p{color:var(--text-2);font-size:15px;margin-bottom:20px}
+.modal .btn-row{justify-content:flex-end}
+.modal .btn{height:40px;padding:0 16px}
+.btn.danger{background:#5A1B1E;border-color:#6E2226;color:#FBE9EA}
+.btn.danger:hover{background:#6E2226;border-color:var(--err)}
+</style>
+</head>
+<body>
+
+<header class="topbar" id="topbar">
+  <div class="topbar-in">
+    <div class="brand">Farmacologia <b>Clínica</b></div>
+    <button class="tb-btn" id="btnHome" title="Início">Início</button>
+    <span class="counter" id="counter"></span>
+    <button class="tb-btn" id="btnMap" aria-expanded="false" title="Mapa de questões (M)">Mapa</button>
+    <button class="tb-btn" id="btnReset" title="Reiniciar simulado">Reiniciar</button>
+    <button class="tb-btn primary" id="btnFinish" title="Finalizar e ver resultado">Finalizar</button>
+  </div>
+  <div class="progress"><i id="prog"></i></div>
+  <div class="map" id="map" role="dialog" aria-label="Mapa de questões">
+    <div class="map-filters">
+      <button class="chip on" data-f="all">Todas</button>
+      <button class="chip" data-f="wrong">Erradas</button>
+      <button class="chip" data-f="blank">Em branco</button>
+    </div>
+    <div class="map-grid" id="mapGrid"></div>
+    <div class="map-legend"><span class="l-ok">Acerto</span><span class="l-err">Erro</span><span>Em branco</span></div>
+  </div>
+</header>
+
+<main>
+  <!-- START -->
+  <section class="view" id="vStart">
+    <div class="start">
+      <h1>2ª Bateria de <span>Farmacologia Clínica</span></h1>
+      <p>50 questões inéditas da 2ª bateria de Farmacologia Clínica, priorizando conteúdos e situações que ficaram de fora da primeira bateria, sem repetir questões anteriores e mantendo o mesmo padrão estrutural de revisão. Uma questão por vez, com correção e explicação didática após cada resposta.</p>
+      <div class="stats">
+        <div class="stat"><div class="n" id="stTotal">50</div><div class="l">questões</div></div>
+        <div class="stat"><div class="n">4</div><div class="l">alternativas</div></div>
+        <div class="stat"><div class="n" id="stDone">0</div><div class="l">respondidas</div></div>
+      </div>
+      <div class="btn-row">
+        <button class="btn primary" id="btnStart">Iniciar</button>
+        <button class="btn" id="btnRestartFromStart" style="display:none">Começar do zero</button>
+      </div>
+      <div class="keys">
+        <span><kbd>A</kbd><kbd>B</kbd><kbd>C</kbd><kbd>D</kbd>responder</span>
+        <span><kbd>Enter</kbd>avançar</span>
+        <span><kbd>←</kbd><kbd>→</kbd>navegar</span>
+        <span><kbd>M</kbd>mapa</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- QUESTION -->
+  <section class="view" id="vQuiz">
+    <div class="q-head">
+      <span class="q-num" id="qNum"></span>
+      <span class="mode-tag" id="modeTag" style="display:none">refazendo erradas</span>
+    </div>
+    <article class="q-card">
+      <p class="q-case" id="qCase"></p>
+      <p class="q-ask" id="qAsk"></p>
+      <div class="opts" id="qOpts"></div>
+      <div class="fb" id="fb"></div>
+    </article>
+    <div class="q-nav">
+      <button class="btn" id="btnPrev">Anterior</button>
+      <span class="hint"><kbd>Enter</kbd>próxima</span>
+      <button class="btn primary" id="btnNext">Próxima</button>
+    </div>
+  </section>
+
+  <!-- RESULT -->
+  <section class="view" id="vResult">
+    <div class="res">
+      <h2>Resultado do simulado</h2>
+      <div class="pct" id="rPct">0<small>%</small></div>
+      <p class="verdict" id="rVerdict"></p>
+      <div class="res-bar" id="rBar"></div>
+      <div class="res-grid">
+        <div class="res-cell ok"><div class="n" id="rOk">0</div><div class="l">acertos</div></div>
+        <div class="res-cell err"><div class="n" id="rErr">0</div><div class="l">erros</div></div>
+        <div class="res-cell"><div class="n" id="rBlank">0</div><div class="l">em branco</div></div>
+      </div>
+      <div class="btn-row">
+        <button class="btn primary" id="btnReview">Revisar questões</button>
+        <button class="btn" id="btnRedo">Refazer erradas</button>
+        <button class="btn" id="btnResHome">Início</button>
+      </div>
+    </div>
+  </section>
+</main>
+
+<div class="modal-bg" id="modal">
+  <div class="modal" role="alertdialog" aria-modal="true" aria-labelledby="mTitle">
+    <h3 id="mTitle"></h3>
+    <p id="mText"></p>
+    <div class="btn-row">
+      <button class="btn" id="mCancel">Cancelar</button>
+      <button class="btn primary" id="mOk">Confirmar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* =========================================================
+   BANCO DE QUESTÕES — 50 questões inéditas
+   c = índice da alternativa correta (0=A, 1=B, 2=C, 3=D)
+   ========================================================= */
+const Q = [
+  {
+    "caso": "Em um estudo de farmacologia, um agonista pleno produz 100% do efeito do sistema. Um segundo fármaco, ao ser administrado isoladamente, produz apenas 60% do efeito máximo, mas ocupa o mesmo receptor. Quando os dois são administrados juntos, a resposta ao agonista pleno diminui.",
+    "pergunta": "Qual interpretação é mais adequada para o segundo fármaco?",
+    "alts": [
+      "É um antagonista não competitivo porque qualquer fármaco com eficácia inferior a 100% reduz o Emax.",
+      "É um agonista parcial e pode funcionar como antagonista competitivo na presença do agonista pleno.",
+      "É um agonista pleno, pois consegue ativar o receptor mesmo sem atingir 100% da resposta do sistema.",
+      "É um modulador alostérico negativo, necessariamente ligado a um sítio diferente do agonista pleno."
+    ],
+    "c": 1,
+    "exp": "<b>Raciocínio:</b> o material descreve o agonista parcial como capaz de ativar o receptor, porém com eficácia inferior à do agonista pleno. Na presença de um agonista pleno, ele pode competir pelo mesmo receptor e reduzir a resposta global do sistema.",
+    "erros": {
+      "0": "O antagonismo não competitivo é caracterizado pela redução do Emax e não simplesmente por ter eficácia inferior a 100%.",
+      "2": "Um agonista pleno é definido por produzir a resposta máxima do sistema; aqui o fármaco isolado produz apenas 60%.",
+      "3": "O enunciado não fornece evidência de ligação a sítio alostérico; o conceito central apresentado é o do agonista parcial."
+    }
+  },
+  {
+    "caso": "Um fármaco experimental é testado na presença de um agonista. A curva dose–resposta do agonista desloca-se para a esquerda: a concentração necessária para produzir determinado efeito diminui, enquanto o teto de resposta permanece disponível.",
+    "pergunta": "Qual mecanismo melhor explica esse achado?",
+    "alts": [
+      "Modulação alostérica positiva, aumentando a potência aparente do agonista.",
+      "Antagonismo competitivo reversível, com redução da potência do agonista.",
+      "Antagonismo não competitivo irreversível, com redução do Emax.",
+      "Down-regulation de receptores, com necessidade de doses maiores do agonista."
+    ],
+    "c": 0,
+    "exp": "<b>Raciocínio:</b> o material associa deslocamento para a esquerda, com redução da EC50, ao aumento da potência. Uma explicação apresentada é a potencialização por modulador alostérico positivo.",
+    "erros": {
+      "1": "O antagonismo competitivo desloca a curva para a direita, aumentando a EC50.",
+      "2": "O antagonismo não competitivo reduz o Emax; aqui o enunciado descreve aumento de potência sem queda do teto.",
+      "3": "Down-regulation está associada à tolerância e ao deslocamento para a direita."
+    }
+  },
+  {
+    "caso": "Em outro experimento, um modulador liga-se a um sítio diferente do sítio ortostérico do agonista. À medida que sua concentração aumenta, o Emax do agonista diminui e altas concentrações do agonista não recuperam o efeito máximo original.",
+    "pergunta": "Esse padrão é mais compatível com:",
+    "alts": [
+      "Potencialização alostérica positiva.",
+      "Antagonismo competitivo reversível.",
+      "Modulação alostérica negativa com redução do Emax.",
+      "Aumento da potência por redução da EC50."
+    ],
+    "c": 2,
+    "exp": "<b>Raciocínio:</b> o material descreve moduladores alostéricos negativos como agentes que reduzem a resposta do agonista por ação em sítio diferente do ortostérico. Quando o teto de resposta é reduzido e não pode ser recuperado apenas com aumento do agonista, o padrão é não competitivo.",
+    "erros": {
+      "0": "Um modulador alostérico positivo aumenta a atividade do agonista, não reduz seu teto de resposta.",
+      "1": "O antagonismo competitivo ocorre no mesmo sítio ortostérico e preserva o Emax.",
+      "3": "Redução da EC50 indica aumento de potência; o caso descreve queda do Emax."
+    }
+  },
+  {
+    "caso": "Um fármaco administrado por via intravenosa produz concentração sistêmica conhecida a partir de toda a dose administrada. Um segundo fármaco, administrado por via oral, sofre absorção gastrointestinal e metabolismo antes de alcançar a circulação sistêmica.",
+    "pergunta": "Qual comparação está de acordo com a farmacocinética apresentada no material?",
+    "alts": [
+      "A via oral sempre apresenta biodisponibilidade de 100% porque todo comprimido é absorvido pelo intestino.",
+      "A via IV sofre metabolismo de primeira passagem hepática antes de alcançar a circulação sistêmica.",
+      "A biodisponibilidade é determinada apenas pelo volume de distribuição, independentemente da via de administração.",
+      "A administração IV tem biodisponibilidade considerada de 100%, enquanto a via oral pode ter biodisponibilidade menor por absorção incompleta e metabolismo de primeira passagem."
+    ],
+    "c": 3,
+    "exp": "<b>Raciocínio:</b> o material apresenta a via IV como referência de biodisponibilidade de 100%. Na administração oral, a fração que chega à circulação pode ser menor por limitações de absorção e por metabolismo pré-sistêmico.",
+    "erros": {
+      "0": "A biodisponibilidade oral não é necessariamente 100%; ela pode ser reduzida por absorção incompleta e primeira passagem.",
+      "1": "O metabolismo de primeira passagem afeta fármacos administrados por certas vias extravasculares, não caracteriza a via IV dessa forma.",
+      "2": "Volume de distribuição influencia concentração e distribuição, mas não define sozinho a biodisponibilidade."
+    }
+  },
+  {
+    "caso": "Um paciente com baixa concentração de albumina recebe um fármaco com alta ligação proteica. Após a queda da albumina, a fração livre do medicamento aumenta, embora a dose prescrita não tenha sido alterada.",
+    "pergunta": "Qual consequência farmacológica deve ser considerada?",
+    "alts": [
+      "A fração livre pode aumentar a disponibilidade farmacologicamente ativa e elevar o risco de efeitos ou toxicidade, dependendo do fármaco e do contexto.",
+      "A fração livre sempre diminui porque mais fármaco se liga a proteínas quando a albumina cai.",
+      "A redução da albumina não modifica a distribuição do fármaco, pois somente a dose total determina o efeito.",
+      "A alteração afeta apenas a absorção gastrointestinal e não interfere na exposição ao medicamento."
+    ],
+    "c": 0,
+    "exp": "<b>Raciocínio:</b> o material enfatiza que apenas a fração livre é ativa. Alterações da ligação proteica podem modificar a fração livre e, em fármacos apropriados, aumentar a chance de efeitos farmacológicos ou toxicidade.",
+    "erros": {
+      "1": "Com menos albumina disponível, a tendência é reduzir a ligação e aumentar a fração livre, não o contrário.",
+      "2": "A fração livre é relevante para o efeito farmacológico; a concentração total pode não refletir toda a exposição ativa.",
+      "3": "Ligação proteica é um componente da distribuição, não simplesmente da absorção gastrointestinal."
+    }
+  },
+  {
+    "caso": "Um paciente recebe um fármaco que, além da filtração glomerular, é eliminado por secreção tubular ativa. Uma nova substância começa a competir pelo mesmo sistema de transporte renal, sem mudar a dose do primeiro fármaco.",
+    "pergunta": "Qual alteração farmacocinética é mais plausível?",
+    "alts": [
+      "Aumento da excreção do fármaco original por aceleração automática da filtração glomerular.",
+      "Redução da concentração do fármaco original por aumento obrigatório da reabsorção renal.",
+      "Redução da eliminação renal do fármaco original, com potencial aumento de sua concentração plasmática.",
+      "Ausência de qualquer interação, porque a secreção tubular é irrelevante para a eliminação de fármacos."
+    ],
+    "c": 2,
+    "exp": "<b>Raciocínio:</b> o material diferencia filtração glomerular, secreção tubular ativa e reabsorção tubular. Competição pela secreção tubular pode reduzir a eliminação do fármaco e favorecer acúmulo.",
+    "erros": {
+      "0": "A competição pela secreção não acelera automaticamente a filtração glomerular.",
+      "1": "A reabsorção é um mecanismo distinto; o enunciado descreve competição pela secreção tubular ativa.",
+      "3": "O material destaca explicitamente a secreção tubular como mecanismo relevante de eliminação e interação."
+    }
+  },
+  {
+    "caso": "Um paciente com insuficiência cardíaca usa Digoxina de forma estável. Após iniciar um medicamento que inibe a glicoproteína-P, ele passa a apresentar náuseas, alterações visuais e arritmias. A digoxinemia está acima do habitual.",
+    "pergunta": "Qual mecanismo explica melhor a elevação da exposição à Digoxina?",
+    "alts": [
+      "Indução da glicoproteína-P, que aumenta a eliminação da Digoxina e, paradoxalmente, eleva sua concentração.",
+      "Inibição da glicoproteína-P, reduzindo o efluxo e o clearance da Digoxina e favorecendo aumento de seus níveis.",
+      "Bloqueio de receptores D2, responsável diretamente pelas alterações visuais da Digoxina.",
+      "Aumento da albumina plasmática, que transforma toda a Digoxina em fração livre ativa."
+    ],
+    "c": 1,
+    "exp": "<b>Raciocínio:</b> o material apresenta a P-glicoproteína como transportador de efluxo e destaca que sua inibição pode aumentar a exposição de fármacos como a Digoxina. O quadro clínico descrito é compatível com toxicidade digitálica, devendo a interação ser reconhecida.",
+    "erros": {
+      "0": "Indução de P-gp tende a aumentar efluxo, não a explicar o aumento da exposição descrito.",
+      "2": "Dopamina e receptores D2 não são o mecanismo apresentado para a interação da Digoxina nesse caso.",
+      "3": "O fenômeno destacado no material é a alteração do transportador P-gp, não aumento obrigatório de albumina."
+    }
+  },
+  {
+    "caso": "Dois medicamentos são comparados em um paciente com insuficiência cardíaca. Um deles tem maior Emax em um teste experimental, mas não apresenta o mesmo benefício clínico observado com um antagonista β-adrenérgico utilizado na prática.",
+    "pergunta": "Qual princípio do material explica por que o resultado experimental não determina sozinho a escolha clínica?",
+    "alts": [
+      "Quanto maior o Emax, maior obrigatoriamente o benefício clínico em longo prazo.",
+      "Um antagonista nunca pode ter benefício clínico porque não ativa o receptor.",
+      "Potência e Emax são os únicos parâmetros relevantes para a decisão terapêutica.",
+      "A eficácia farmacodinâmica não é sinônimo de benefício clínico; o mecanismo global, o perfil de risco e os desfechos comprovados também orientam a escolha."
+    ],
+    "c": 3,
+    "exp": "<b>Raciocínio:</b> o material usa o Carvedilol como exemplo de que menor eficácia intrínseca em um teste não significa menor benefício clínico. A decisão deve integrar mecanismo, risco e benefício clínico comprovado.",
+    "erros": {
+      "0": "O próprio material destaca que Emax não garante superioridade clínica.",
+      "1": "Um antagonista pode gerar benefício terapêutico justamente ao bloquear uma via prejudicial.",
+      "2": "O material propõe integrar farmacodinâmica e farmacocinética, não reduzir a decisão a um único parâmetro."
+    }
+  },
+  {
+    "caso": "Um homem de 27 anos com esquizofrenia apresenta apatia importante, dificuldade de planejamento, redução da motivação e prejuízo cognitivo persistente. Os sintomas positivos estão controlados.",
+    "pergunta": "Qual via dopaminérgica está mais relacionada ao conjunto de sintomas descrito no material?",
+    "alts": [
+      "Via mesolímbica, cuja hiperatividade está associada principalmente a delírios e alucinações.",
+      "Via tuberoinfundibular, cuja hiperatividade causa exclusivamente parkinsonismo.",
+      "Via nigroestriatal, cuja hipoatividade é apresentada como principal causa de sintomas afetivos da esquizofrenia.",
+      "Via mesocortical, cuja hipoatividade se relaciona a sintomas negativos e cognitivos."
+    ],
+    "c": 3,
+    "exp": "<b>Raciocínio:</b> o material relaciona a via mesocortical ao córtex pré-frontal e a funções executivas, cognição, motivação e afeto. Sua hipoatividade está associada aos sintomas negativos e cognitivos.",
+    "erros": {
+      "0": "O material associa a hiperatividade mesolímbica principalmente a sintomas positivos.",
+      "1": "A via tuberoinfundibular está ligada ao controle da prolactina.",
+      "2": "A via nigroestriatal está ligada ao controle motor; seu bloqueio D2 é relacionado a efeitos extrapiramidais."
+    }
+  },
+  {
+    "caso": "Um paciente com ansiedade intensa inicia um fármaco que potencializa a neurotransmissão inibitória mediada pelo receptor GABA-A. A equipe explica que a ligação ao receptor aumenta a inibição neuronal.",
+    "pergunta": "Qual afirmação está de acordo com o conteúdo da aula de psicofarmacologia?",
+    "alts": [
+      "A ação ocorre principalmente por bloquear os receptores dopaminérgicos D2 no núcleo accumbens.",
+      "A ação depende de antagonismo aos receptores 5-HT2A no estriado.",
+      "A modulação do GABA-A aumenta a atividade inibitória no SNC e está relacionada ao efeito dos benzodiazepínicos.",
+      "O efeito decorre de inibição da tirosina-quinase do receptor de insulina."
+    ],
+    "c": 2,
+    "exp": "<b>Raciocínio:</b> o material usa a ideia de GABA como “freio” e apresenta os benzodiazepínicos como moduladores da atividade do receptor GABA-A. O efeito final é aumento da neurotransmissão inibitória.",
+    "erros": {
+      "0": "O bloqueio D2 caracteriza outro grupo farmacológico, os antipsicóticos.",
+      "1": "5-HT2A participa da farmacologia dos antipsicóticos atípicos, não é o mecanismo descrito aqui.",
+      "3": "O receptor de insulina é receptor ligado a quinase, sem relação com o mecanismo descrito."
+    }
+  },
+  {
+    "caso": "Um homem de 40 anos com primeiro episódio psicótico precisa iniciar um antipsicótico. O médico compara Haloperidol e Clorpromazina, discutindo os perfis de afinidade e efeitos adversos apresentados na aula.",
+    "pergunta": "Qual comparação está correta?",
+    "alts": [
+      "Haloperidol é de baixa potência e apresenta maior sedação por bloqueio H1 que a Clorpromazina.",
+      "Clorpromazina é de alta potência, com maior afinidade D2 e maior risco de distonia aguda.",
+      "Haloperidol é de alta potência, com maior risco de efeitos extrapiramidais e menor sedação/hipotensão que a Clorpromazina.",
+      "Os dois fármacos possuem exatamente o mesmo perfil de sedação, efeitos extrapiramidais e efeitos autonômicos."
+    ],
+    "c": 2,
+    "exp": "<b>Raciocínio:</b> a aula diferencia Haloperidol como antipsicótico de alta potência, com alta afinidade por D2 e maior risco de EPS, e Clorpromazina como de baixa potência, com mais sedação, hipotensão e efeitos anticolinérgicos.",
+    "erros": {
+      "0": "A descrição de baixa potência e maior sedação corresponde à Clorpromazina, não ao Haloperidol.",
+      "1": "A Clorpromazina é apresentada como antipsicótico de baixa potência.",
+      "3": "O material destaca diferenças importantes entre as duas drogas."
+    }
+  },
+  {
+    "caso": "Uma paciente apresenta esquizofrenia e também doença de Parkinson. Durante a escolha de um antipsicótico, o médico procura uma opção com baixo risco de piorar os sintomas motores por bloqueio dopaminérgico nigroestriatal.",
+    "pergunta": "Qual opção foi destacada no material como tendo baixíssimo risco de EPS e utilidade nesse contexto?",
+    "alts": [
+      "Haloperidol.",
+      "Quetiapina.",
+      "Clorpromazina.",
+      "Risperidona em doses altas."
+    ],
+    "c": 1,
+    "exp": "<b>Raciocínio:</b> o material descreve a Quetiapina como tendo ligação frouxa ao D2, com rápida dissociação e baixíssimo risco de EPS, sendo citada como opção segura no Parkinson.",
+    "erros": {
+      "0": "Haloperidol é de alta potência e apresenta alto risco de EPS.",
+      "2": "Clorpromazina tem menor risco de EPS que Haloperidol, mas não é a opção destacada como de baixíssimo risco no Parkinson.",
+      "3": "Risperidona apresenta EPS dose-dependente e maior risco de hiperprolactinemia."
+    }
+  },
+  {
+    "caso": "Um homem com esquizofrenia resistente ao tratamento iniciou Clozapina. Dois meses depois, passa a apresentar febre, odinofagia e mal-estar. O hemograma mostra redução importante dos neutrófilos.",
+    "pergunta": "Qual problema deve ser imediatamente considerado?",
+    "alts": [
+      "Síndrome serotoninérgica causada pela combinação obrigatória de Clozapina com ISRS.",
+      "Efeito extrapiramidal esperado que não necessita de investigação laboratorial.",
+      "Hiperprolactinemia isolada, que explica adequadamente febre e neutropenia.",
+      "Agranulocitose associada à Clozapina, exigindo avaliação hematológica e manejo imediato."
+    ],
+    "c": 3,
+    "exp": "<b>Raciocínio:</b> a aula destaca agranulocitose como efeito adverso grave da Clozapina e reforça a necessidade de monitorização hematológica. Febre e dor de garganta em paciente em uso da droga são sinais de alerta que exigem investigação rápida.",
+    "erros": {
+      "0": "O quadro descrito é principalmente hematológico; não há no enunciado a associação necessária que justificaria síndrome serotoninérgica.",
+      "1": "Febre e neutropenia não são explicadas por um EPS simples.",
+      "2": "Hiperprolactinemia não explica a combinação de febre e neutropenia."
+    }
+  },
+  {
+    "caso": "Um paciente com esquizofrenia em tratamento crônico com antipsicótico passa a apresentar movimentos involuntários repetitivos de língua, lábios e face. Os movimentos diminuem durante o sono e surgiram após anos de exposição.",
+    "pergunta": "Qual diagnóstico é mais compatível com o quadro?",
+    "alts": [
+      "Discinesia tardia.",
+      "Distonia aguda.",
+      "Acatisia.",
+      "Síndrome serotoninérgica."
+    ],
+    "c": 0,
+    "exp": "<b>Raciocínio:</b> a aula descreve discinesia tardia como efeito extrapiramidal tardio, com movimentos involuntários de língua, lábios e face, podendo desaparecer durante o sono. O tempo prolongado de exposição é uma pista importante.",
+    "erros": {
+      "1": "Distonia aguda tende a ocorrer precocemente, com contrações musculares sustentadas.",
+      "2": "Acatisia é caracterizada por inquietação motora e necessidade de se mover, não por movimentos orofaciais tardios.",
+      "3": "Síndrome serotoninérgica tem evolução aguda e associação com clônus e hiperreflexia."
+    }
+  },
+  {
+    "caso": "Uma paciente em uso de antipsicótico relata sensação interna intensa de inquietação, incapacidade de permanecer sentada e necessidade constante de caminhar. Ela percebe o início do quadro após o aumento da dose.",
+    "pergunta": "Qual efeito adverso deve ser reconhecido?",
+    "alts": [
+      "Discinesia tardia, caracterizada exclusivamente por movimentos orofaciais após décadas de uso.",
+      "Agranulocitose, que se manifesta principalmente por inquietação motora.",
+      "Acatisia, um efeito extrapiramidal caracterizado por inquietação motora intensa.",
+      "Hipercalemia, efeito típico de bloqueio D2 nigroestriatal."
+    ],
+    "c": 2,
+    "exp": "<b>Raciocínio:</b> o material identifica a acatisia como efeito extrapiramidal associado a inquietação motora, com sensação de não conseguir ficar parado. O início após aumento da dose reforça a relação com o antipsicótico.",
+    "erros": {
+      "0": "A descrição fornecida não corresponde à discinesia tardia, que envolve movimentos involuntários tardios, sobretudo orofaciais.",
+      "1": "Agranulocitose é uma toxicidade hematológica grave ligada à Clozapina.",
+      "3": "Hipercalemia não é o mecanismo apresentado para esse efeito extrapiramidal."
+    }
+  },
+  {
+    "caso": "Um paciente em uso de antipsicótico apresenta síncope. O ECG demonstra QTc de 520 ms. Não há outra alteração clínica que explique o evento, e a equipe revisa a farmacologia dos psicofármacos.",
+    "pergunta": "Qual risco deve ser priorizado?",
+    "alts": [
+      "Redução da prolactina por estímulo tuberoinfundibular.",
+      "Prolongamento do QT com maior risco de arritmia ventricular.",
+      "Hipoglicemia inevitável por bloqueio de receptores H1.",
+      "Agranulocitose isolada, sem necessidade de avaliar o ECG."
+    ],
+    "c": 1,
+    "exp": "<b>Raciocínio:</b> o material apresenta prolongamento do QT como efeito adverso relevante de antipsicóticos e relaciona o achado a risco de arritmias ventriculares. Um QTc de 520 ms associado a síncope exige atenção para esse risco.",
+    "erros": {
+      "0": "O problema descrito é elétrico, não uma redução da prolactina.",
+      "2": "Bloqueio H1 está mais relacionado à sedação e ao risco metabólico, não à hipoglicemia inevitável.",
+      "3": "Agranulocitose é outra toxicidade, mas não explica o QT prolongado."
+    }
+  },
+  {
+    "caso": "Uma mulher com depressão apresenta perda de apetite, baixo peso e insônia. O médico procura um antidepressivo que possa melhorar o sono e o apetite, evitando disfunção sexual como efeito proeminente.",
+    "pergunta": "Qual opção é apresentada no material com esse perfil?",
+    "alts": [
+      "Venlafaxina.",
+      "Fluoxetina.",
+      "Citalopram.",
+      "Mirtazapina."
+    ],
+    "c": 3,
+    "exp": "<b>Raciocínio:</b> o material descreve a Mirtazapina como NASSA e destaca que ela não causa disfunção sexual nem náuseas, sendo uma opção coerente quando sono e apetite precisam ser considerados.",
+    "erros": {
+      "0": "Venlafaxina é um IRSN; em doses altas deve-se monitorar a pressão arterial.",
+      "1": "Fluoxetina é apresentada como mais ativadora e pode piorar insônia.",
+      "2": "Citalopram pertence aos ISRS e tem alerta para prolongamento dose-dependente do QTc."
+    }
+  },
+  {
+    "caso": "Um homem de 58 anos com depressão inicia Amitriptilina. Após a titulação, passa a apresentar boca seca, constipação, visão turva e palpitações. A equipe considera a farmacologia da classe.",
+    "pergunta": "Qual mecanismo explica melhor o conjunto de efeitos adversos?",
+    "alts": [
+      "Inibição exclusiva da recaptação de dopamina, produzindo apenas ativação motora.",
+      "Bloqueio de receptores de insulina, levando principalmente a hiperglicemia.",
+      "Efeitos anticolinérgicos e toxicidade cardiovascular são características relevantes dos tricíclicos.",
+      "Agonismo 5-HT1A parcial, sem efeitos cardiovasculares significativos."
+    ],
+    "c": 2,
+    "exp": "<b>Raciocínio:</b> a aula descreve os tricíclicos como inibidores da recaptação de 5-HT e NE e destaca efeitos anticolinérgicos, sedação, ganho de peso e toxicidade cardiovascular, incluindo arritmias.",
+    "erros": {
+      "0": "A Amitriptilina não é classificada no material como um inibidor seletivo de dopamina.",
+      "1": "O receptor de insulina não explica o perfil clínico dos tricíclicos.",
+      "3": "Agonismo parcial 5-HT1A é o mecanismo apresentado para Buspirona, não para Amitriptilina."
+    }
+  },
+  {
+    "caso": "Uma mulher de 72 anos apresenta depressão e doença cardíaca. O médico considera um ISRS e analisa o risco de alterações elétricas cardíacas descritas na aula.",
+    "pergunta": "Qual fármaco merece atenção especial pelo risco dose-dependente de prolongamento do QTc?",
+    "alts": [
+      "Fluoxetina.",
+      "Sertralina.",
+      "Mirtazapina.",
+      "Citalopram."
+    ],
+    "c": 3,
+    "exp": "<b>Raciocínio:</b> entre os ISRS apresentados, o material destaca Citalopram com alerta para prolongamento dose-dependente do QTc, aspecto especialmente importante em pacientes com maior vulnerabilidade cardíaca.",
+    "erros": {
+      "0": "Fluoxetina é descrita sobretudo por meia-vida longa e perfil mais ativador.",
+      "1": "Sertralina é apresentada com excelente perfil cardiovascular no material.",
+      "2": "Mirtazapina pertence a outra classe, NASSA."
+    }
+  },
+  {
+    "caso": "Uma paciente interrompe um antidepressivo e apresenta preocupação com sintomas de descontinuação. Outro antidepressivo foi discutido porque permanece no organismo por período muito mais prolongado.",
+    "pergunta": "Qual afirmação do material diferencia a Fluoxetina nesse contexto?",
+    "alts": [
+      "A Fluoxetina possui meia-vida curta e, por isso, é a que mais causa síndrome de descontinuação.",
+      "A Fluoxetina possui meia-vida longa, o que reduz o risco de descontinuação abrupta em comparação com antidepressivos de meia-vida curta.",
+      "A Fluoxetina é eliminada em minutos e exige várias tomadas ao longo do dia.",
+      "A Fluoxetina não atua em serotonina, portanto não interfere em síndromes de descontinuação."
+    ],
+    "c": 1,
+    "exp": "<b>Raciocínio:</b> a aula destaca a meia-vida longa da Fluoxetina e associa esse perfil a menor risco de descontinuação. Já a Paroxetina é apresentada com meia-vida curta e maior risco de descontinuação abrupta.",
+    "erros": {
+      "0": "O material atribui à Fluoxetina meia-vida longa e menor risco de descontinuação.",
+      "2": "A meia-vida longa é justamente o oposto de eliminação em minutos.",
+      "3": "Fluoxetina é um ISRS, portanto atua na transmissão serotoninérgica."
+    }
+  },
+  {
+    "caso": "Um paciente com transtorno bipolar em uso de Lítio está clinicamente estável. Na consulta de seguimento, a equipe planeja exames periódicos para acompanhar eficácia e segurança ao longo dos meses.",
+    "pergunta": "Qual conjunto de monitorização está de acordo com o material?",
+    "alts": [
+      "Apenas glicemia capilar, pois o Lítio não interfere na função renal nem tireoidiana.",
+      "Somente transaminases, porque o Lítio é metabolizado exclusivamente pelo fígado.",
+      "Apenas ECG, sem necessidade de acompanhar os níveis séricos ou a função renal.",
+      "Litemia, função renal e TSH/T4 livre, considerando a janela terapêutica e os efeitos sobre rim e tireoide."
+    ],
+    "c": 3,
+    "exp": "<b>Raciocínio:</b> o material define o Lítio como fármaco de janela estreita, com excreção renal e risco de diabetes insipidus nefrogênico e hipotireoidismo. Por isso, a litemia e o acompanhamento renal e tireoidiano são fundamentais.",
+    "erros": {
+      "0": "O material enfatiza justamente o risco renal e tireoidiano do Lítio.",
+      "1": "O Lítio não é apresentado como fármaco de metabolismo exclusivamente hepático.",
+      "2": "ECG pode ter utilidade clínica em contextos específicos, mas não substitui a monitorização destacada no material."
+    }
+  },
+  {
+    "caso": "Um homem com transtorno bipolar está estável com Lítio. Para hipertensão, outro médico adiciona um diurético tiazídico. Duas semanas depois, ele apresenta tremor grosseiro e ataxia, com aumento da litemia.",
+    "pergunta": "Qual explicação é mais compatível com o conteúdo da aula?",
+    "alts": [
+      "Diuréticos tiazídicos podem reduzir a excreção renal do Lítio e aumentar a litemia, favorecendo intoxicação.",
+      "Os tiazídicos aumentam a excreção renal do Lítio e protegem contra toxicidade.",
+      "Os tiazídicos não interferem no Lítio; o aumento da litemia seria necessariamente causado por dieta.",
+      "A associação reduz a absorção intestinal do Lítio, causando apenas falha terapêutica."
+    ],
+    "c": 0,
+    "exp": "<b>Raciocínio:</b> o material alerta para interações que reduzem a excreção renal do Lítio, incluindo diuréticos tiazídicos. Com aumento da litemia, tremor grosseiro e ataxia tornam-se sinais de toxicidade que exigem revisão imediata do esquema.",
+    "erros": {
+      "1": "A relação apresentada no material é de aumento da litemia e risco de intoxicação, não proteção.",
+      "2": "A aula cita explicitamente diuréticos tiazídicos como interação perigosa.",
+      "3": "O mecanismo destacado é renal, e não simplesmente alteração da absorção intestinal."
+    }
+  },
+  {
+    "caso": "Uma mulher com epilepsia focal em uso de Carbamazepina há anos planeja engravidar. Ela está estável e não teve crises recentes, mas ainda não iniciou suplementação pré-concepcional.",
+    "pergunta": "Qual orientação está de acordo com o material de revisão?",
+    "alts": [
+      "Reavaliar a terapia, considerar alternativa com menor risco teratogênico conforme o contexto e instituir ácido fólico em dose elevada antes da gestação.",
+      "Suspender imediatamente toda medicação anticonvulsivante para eliminar completamente o risco fetal.",
+      "Manter a Carbamazepina sem qualquer reavaliação porque gravidez não modifica o risco terapêutico.",
+      "Trocar automaticamente para Ácido Valproico, considerado o anticonvulsivante preferencial em qualquer gestação."
+    ],
+    "c": 0,
+    "exp": "<b>Raciocínio:</b> no material de revisão, a Carbamazepina é associada a risco aumentado de defeitos do tubo neural, e a abordagem destacada é evitar mudanças abruptas, reavaliar a escolha e utilizar ácido fólico em alta dose no planejamento gestacional.",
+    "erros": {
+      "1": "Suspensão abrupta pode precipitar crises e não é apresentada como conduta segura.",
+      "2": "A gestação é justamente um contexto que exige reavaliação do risco-benefício.",
+      "3": "O material não apresenta Ácido Valproico como escolha automática; ao contrário, destaca risco teratogênico importante."
+    }
+  },
+  {
+    "caso": "Uma paciente com epilepsia mioclônica juvenil utiliza um anticonvulsivante e pretende engravidar. O médico ressalta a importância de evitar exposição desnecessária a fármacos com maior risco fetal.",
+    "pergunta": "Qual princípio deve orientar a decisão farmacológica segundo o material?",
+    "alts": [
+      "Escolher o anticonvulsivante com maior teratogenicidade porque ele é sempre mais potente.",
+      "Suspender a terapia no primeiro dia de atraso menstrual em qualquer paciente com epilepsia.",
+      "Reavaliar a necessidade e a escolha do anticonvulsivante antes da gestação, evitando suspensão abrupta e considerando o risco fetal descrito para determinadas drogas.",
+      "Substituir qualquer anticonvulsivante por placebo durante toda a gestação."
+    ],
+    "c": 2,
+    "exp": "<b>Raciocínio:</b> o material de revisão enfatiza planejamento reprodutivo, avaliação individual do risco teratogênico e o cuidado para não suspender anticonvulsivantes abruptamente. A decisão deve equilibrar controle de crises e segurança fetal.",
+    "erros": {
+      "0": "Maior teratogenicidade não é uma vantagem terapêutica.",
+      "1": "Suspensão abrupta não é apresentada como regra e pode precipitar crises.",
+      "3": "O material não propõe substituir tratamentos eficazes por placebo."
+    }
+  },
+  {
+    "caso": "Um homem com epilepsia focal apresenta piora do controle das crises após início de tratamento para tuberculose. A concentração sérica da Fenitoína caiu significativamente apesar de a dose ter sido mantida.",
+    "pergunta": "Qual mecanismo explica melhor a falha terapêutica?",
+    "alts": [
+      "A combinação sempre reduz a excreção da Fenitoína e causa toxicidade por acúmulo.",
+      "A Rifampicina inibe irreversivelmente todas as enzimas hepáticas, aumentando a concentração da Fenitoína.",
+      "A alteração decorre exclusivamente de aumento da absorção intestinal da Fenitoína.",
+      "As interações medicamentosas podem aumentar o metabolismo da Fenitoína por indução enzimática, reduzindo sua concentração e eficácia."
+    ],
+    "c": 3,
+    "exp": "<b>Raciocínio:</b> o material destaca interações mediadas pelo CYP450 e o risco de indutores, como a Rifampicina, reduzirem a exposição de fármacos por aumento da atividade metabólica. A consequência pode ser perda de controle terapêutico.",
+    "erros": {
+      "0": "O problema descrito é concentração reduzida e falha terapêutica, não acúmulo tóxico.",
+      "1": "A lógica apresentada para a Rifampicina é indução enzimática, não inibição.",
+      "2": "O material enfatiza metabolismo e indução como mecanismos relevantes nesse cenário."
+    }
+  },
+  {
+    "caso": "Uma mulher em uso de anticoncepcional oral combinado inicia Carbamazepina. Meses depois, apresenta sangramento de escape e preocupa-se com falha contraceptiva.",
+    "pergunta": "Qual relação farmacológica está mais de acordo com o material?",
+    "alts": [
+      "A Carbamazepina inibe o CYP e aumenta a concentração dos hormônios, tornando o método mais eficaz.",
+      "A interação ocorre apenas por ligação às proteínas plasmáticas, sem mudança na depuração.",
+      "A indução enzimática sempre eleva a concentração do fármaco substrato e reduz a necessidade de acompanhamento.",
+      "A Carbamazepina pode induzir enzimas e transportadores, reduzindo a exposição aos hormônios contraceptivos e comprometendo a eficácia."
+    ],
+    "c": 3,
+    "exp": "<b>Raciocínio:</b> o material descreve Carbamazepina entre os indutores enzimáticos. Indução aumenta a depuração de substratos e pode reduzir sua exposição, explicando o risco de falha de anticoncepcionais.",
+    "erros": {
+      "0": "Inibição enzimática tende a elevar a exposição; a Carbamazepina é apresentada como indutora.",
+      "1": "A aula enfatiza mecanismos de metabolismo e transportadores além da ligação proteica.",
+      "2": "Indução enzimática, em regra, reduz a concentração do fármaco substrato e pode levar a falha terapêutica."
+    }
+  },
+  {
+    "caso": "Uma paciente em tratamento crônico com anticonvulsivante indutor enzimático apresenta osteopenia em densitometria. O cálcio sérico é normal, mas a vitamina D está baixa.",
+    "pergunta": "Qual explicação é mais compatível com o material?",
+    "alts": [
+      "A osteopenia exclui qualquer relação com o tratamento porque o cálcio sérico está normal.",
+      "O fenômeno ocorre apenas por excesso de TSH, sem relação farmacológica.",
+      "Anticonvulsivantes indutores enzimáticos podem aumentar o metabolismo da vitamina D e contribuir para perda óssea.",
+      "Anticonvulsivantes indutores enzimáticos protegem o osso por aumentarem a disponibilidade de vitamina D."
+    ],
+    "c": 2,
+    "exp": "<b>Raciocínio:</b> o material de questões associa anticonvulsivantes indutores enzimáticos a alteração do metabolismo ósseo, com redução de vitamina D e risco de osteopenia. O cálcio sérico normal não elimina a possibilidade desse efeito crônico.",
+    "erros": {
+      "0": "Um cálcio sérico normal não exclui alterações crônicas do metabolismo ósseo.",
+      "1": "O caso destaca diretamente o uso crônico de um indutor enzimático e não aponta para uma causa tireoidiana.",
+      "3": "O material descreve associação com perda óssea, não proteção."
+    }
+  },
+  {
+    "caso": "Uma paciente com hipertensão arterial inicia Anlodipino. Duas semanas depois, apresenta edema bilateral de tornozelos, sem dispneia, estertores ou sinais de congestão.",
+    "pergunta": "Qual mecanismo explica melhor o edema apresentado?",
+    "alts": [
+      "Retenção hídrica por insuficiência cardíaca descompensada é a única explicação possível.",
+      "O fármaco promove intensa diurese e, por isso, o edema é paradoxalmente um sinal de hipovolemia.",
+      "O edema decorre de bloqueio beta-adrenérgico e redução da frequência cardíaca.",
+      "Bloqueio de canais de cálcio di-hidropiridínicos aumenta preferencialmente a pressão hidrostática capilar periférica, favorecendo edema sem necessariamente representar congestão sistêmica."
+    ],
+    "c": 3,
+    "exp": "<b>Raciocínio:</b> o material de revisão relaciona o edema periférico dos bloqueadores de canal de cálcio di-hidropiridínicos ao aumento da pressão hidrostática capilar periférica. A ausência de sinais de congestão ajuda a diferenciar o efeito adverso da IC descompensada.",
+    "erros": {
+      "0": "O contexto descrito não apresenta sinais de congestão e o material aborda edema como efeito farmacológico dos di-hidropiridínicos.",
+      "1": "Anlodipino não é apresentado como diurético.",
+      "2": "Bloqueio beta-adrenérgico não é o mecanismo do Anlodipino."
+    }
+  },
+  {
+    "caso": "Um homem em uso de Atorvastatina desenvolve mialgia intensa. Ele também começou recentemente um fibrato. A CK está elevada em várias vezes o limite superior da normalidade.",
+    "pergunta": "Qual complicação deve ser priorizada?",
+    "alts": [
+      "Hipertensão refratária causada pela combinação, sem relevância para a CK.",
+      "Tolerância farmacodinâmica à estatina, que exige apenas aumento da dose.",
+      "Rabdomiólise/miotoxicidade por interação entre estatina e fibrato, com necessidade de revisar a combinação e avaliar gravidade.",
+      "Síndrome serotoninérgica, por interação entre a estatina e o fibrato."
+    ],
+    "c": 2,
+    "exp": "<b>Raciocínio:</b> o material destaca aumento do risco de miotoxicidade quando estatinas são associadas a fibratos. Mialgia importante e CK elevada exigem atenção para rabdomiólise e revisão da terapia.",
+    "erros": {
+      "0": "O problema apresentado é musculoesquelético e relacionado à CK, não hipertensão.",
+      "1": "Aumento da dose poderia agravar a toxicidade, e o caso não descreve tolerância.",
+      "3": "Síndrome serotoninérgica está relacionada ao excesso serotoninérgico, não a essa interação."
+    }
+  },
+  {
+    "caso": "Um paciente em uso de Sinvastatina recebe Claritromicina para uma infecção. Alguns dias depois, aparece com mialgia intensa e aumento importante de CK.",
+    "pergunta": "Qual mecanismo é mais provável?",
+    "alts": [
+      "A Claritromicina induz fortemente a CYP3A4 e acelera a eliminação da Sinvastatina.",
+      "A Claritromicina reduz a atividade da CYP3A4 e aumenta a exposição de estatinas metabolizadas por essa via, elevando o risco de miopatia.",
+      "A interação ocorre porque a estatina reduz a absorção da Claritromicina e produz deficiência antibiótica.",
+      "O aumento da CK é incompatível com interação farmacológica e indica obrigatoriamente uma doença muscular primária."
+    ],
+    "c": 1,
+    "exp": "<b>Raciocínio:</b> o material cardiovascular apresenta macrolídeos como inibidores de CYP3A4. Em associação com estatinas metabolizadas por essa via, isso pode aumentar a exposição e o risco de miopatia/rabdomiólise.",
+    "erros": {
+      "0": "Indução aumentaria a atividade da enzima; o material cita macrolídeos como inibidores.",
+      "2": "O mecanismo destacado é metabólico, com aumento da exposição da estatina.",
+      "3": "O padrão clínico e temporal é compatível com interação medicamentosa descrita no material."
+    }
+  },
+  {
+    "caso": "Um homem teve infarto com supradesnivelamento de ST e recebeu stent farmacológico. Na alta, está em uso de AAS e Ticagrelor. A equipe discute a duração da terapia antiplaquetária dupla.",
+    "pergunta": "Qual orientação corresponde ao material?",
+    "alts": [
+      "A manutenção por cerca de 12 meses é a estratégia geral, com possibilidade de ajuste conforme risco isquêmico e hemorrágico.",
+      "A DAPT deve ser interrompida após 48 horas em todos os pacientes.",
+      "A DAPT é necessária apenas enquanto o paciente estiver internado.",
+      "A DAPT deve ser mantida indefinidamente, independentemente do risco de sangramento."
+    ],
+    "c": 0,
+    "exp": "<b>Raciocínio:</b> o material de revisão cardiovascular apresenta manutenção geral da DAPT por 12 meses após o evento, destacando que a duração pode ser estendida ou encurtada conforme o equilíbrio entre risco isquêmico e hemorrágico.",
+    "erros": {
+      "1": "O material não recomenda interrupção rotineira tão precoce.",
+      "2": "A DAPT não termina automaticamente com a alta hospitalar.",
+      "3": "O material ressalta individualização conforme os riscos; manutenção indefinida não é regra."
+    }
+  },
+  {
+    "caso": "Uma mulher em DAPT com AAS e Ticagrelor apresenta hematêmese e melena volumosas, com queda de hemoglobina e necessidade de atendimento hospitalar.",
+    "pergunta": "Qual princípio deve orientar o manejo?",
+    "alts": [
+      "Ignorar o sangramento, porque a prevenção trombótica sempre supera qualquer evento hemorrágico.",
+      "Avaliar o sangramento como evento maior, realizar medidas de suporte e reavaliar a terapia antiplaquetária equilibrando risco hemorrágico e trombótico.",
+      "Aumentar a dose do Ticagrelor para impedir novas tromboses.",
+      "Substituir automaticamente todos os antiagregantes por placebo, sem considerar o contexto do stent e do risco isquêmico."
+    ],
+    "c": 1,
+    "exp": "<b>Raciocínio:</b> o material aborda o equilíbrio entre risco trombótico e hemorrágico na DAPT. Um sangramento maior requer suporte e reavaliação cuidadosa do esquema, sem decisões automáticas que ignorem o risco do stent e do evento isquêmico.",
+    "erros": {
+      "0": "O material exige justamente o equilíbrio entre os dois riscos.",
+      "2": "Aumentar a exposição ao antiagregante seria incompatível com a presença de sangramento maior.",
+      "3": "A interrupção automática sem avaliar o risco trombótico também é inadequada."
+    }
+  },
+  {
+    "caso": "Um paciente em uso crônico de Varfarina muda significativamente sua dieta, passando a consumir grande quantidade de vegetais verdes folhosos. O INR, antes estável, diminui.",
+    "pergunta": "Qual interpretação está mais de acordo com o material?",
+    "alts": [
+      "A vitamina K aumenta diretamente o efeito anticoagulante da Varfarina, elevando o INR.",
+      "A maior ingestão de vitamina K pode reduzir o efeito anticoagulante da Varfarina e contribuir para queda do INR.",
+      "A dieta não interfere na Varfarina e a mudança deve ser atribuída exclusivamente à função renal.",
+      "O consumo de vitamina K provoca inibição da CYP2C9 e sempre aumenta a concentração da Varfarina."
+    ],
+    "c": 1,
+    "exp": "<b>Raciocínio:</b> o material de revisão inclui a interação entre vitamina K da dieta e Varfarina. Aumentos importantes e abruptos de alimentos ricos em vitamina K podem reduzir o efeito anticoagulante e baixar o INR.",
+    "erros": {
+      "0": "Vitamina K é funcionalmente antagonista do efeito anticoagulante da Varfarina, não potenciadora.",
+      "2": "O material reconhece influência da dieta; não é adequado descartá-la automaticamente.",
+      "3": "O mecanismo descrito é relacionado à vitamina K e à anticoagulação, não a uma regra de inibição de CYP2C9."
+    }
+  },
+  {
+    "caso": "Uma paciente em uso de Varfarina aumenta o consumo de álcool por várias semanas. Durante o acompanhamento, o INR fica persistentemente acima da faixa terapêutica e surgem equimoses.",
+    "pergunta": "Qual explicação deve ser considerada?",
+    "alts": [
+      "O álcool nunca interfere na anticoagulação, portanto não precisa ser investigado.",
+      "O aumento do álcool pode alterar a resposta à Varfarina e contribuir para elevação do INR e risco hemorrágico, exigindo revisão do hábito e monitorização.",
+      "O álcool sempre induz a CYP2C9 e, por isso, inevitavelmente reduz o INR.",
+      "A relação é exclusivamente por absorção intestinal de vitamina K e não envolve monitorização do INR."
+    ],
+    "c": 1,
+    "exp": "<b>Raciocínio:</b> o material de questões inclui álcool como fator capaz de alterar a resposta à Varfarina. Diante de aumento do consumo e INR elevado, o hábito deve ser incorporado à investigação e ao plano de monitorização.",
+    "erros": {
+      "0": "O material inclui o álcool entre as variáveis relevantes para a terapia com Varfarina.",
+      "2": "O enunciado descreve INR elevado, e a alternativa propõe obrigatoriamente o sentido oposto.",
+      "3": "A resposta à Varfarina pode envolver múltiplos fatores; o acompanhamento do INR permanece central."
+    }
+  },
+  {
+    "caso": "Uma mulher com prótese valvar mecânica em uso de Varfarina chega com apendicite aguda e indicação de cirurgia de emergência. O INR está muito acima da faixa esperada.",
+    "pergunta": "Qual princípio de manejo é mais compatível com o material?",
+    "alts": [
+      "Manter a Varfarina na dose habitual e operar sem considerar o INR.",
+      "A cirurgia deve ser adiada por vários meses em todos os casos, independentemente da gravidade do quadro abdominal.",
+      "A anticoagulação deve ser revertida/ajustada de acordo com a urgência e o risco hemorrágico, com posterior replanejamento da anticoagulação diante da prótese mecânica.",
+      "Suspender definitivamente a Varfarina porque pacientes com prótese mecânica não precisam mais de anticoagulação."
+    ],
+    "c": 2,
+    "exp": "<b>Raciocínio:</b> o material de revisão trabalha o manejo perioperatório da anticoagulação, enfatizando o equilíbrio entre sangramento e trombose. Em cirurgia de emergência, a anticoagulação precisa ser revertida ou ajustada conforme a urgência, e depois deve-se replanejar a proteção da prótese mecânica.",
+    "erros": {
+      "0": "Operar com INR muito elevado ignora o risco hemorrágico.",
+      "1": "A urgência cirúrgica não permite uma regra de adiamento indefinido.",
+      "3": "Próteses mecânicas mantêm risco tromboembólico e exigem anticoagulação adequada após estabilização."
+    }
+  },
+  {
+    "caso": "Um paciente com choque, extremidades frias, oligúria e confusão apresenta hipotensão grave. A equipe decide iniciar Noradrenalina para suporte hemodinâmico.",
+    "pergunta": "Qual efeito farmacológico justifica essa escolha no contexto apresentado?",
+    "alts": [
+      "Aumento da resistência vascular por efeito vasopressor, auxiliando na restauração da pressão arterial.",
+      "Redução da resistência vascular sistêmica e vasodilatação periférica intensa.",
+      "Bloqueio dos receptores beta-1, reduzindo a frequência cardíaca como mecanismo principal.",
+      "Inibição da aldosterona com aumento de natriurese imediata."
+    ],
+    "c": 0,
+    "exp": "<b>Raciocínio:</b> o material apresenta vasopressores/inotrópicos no contexto de instabilidade hemodinâmica. A Noradrenalina exerce efeito vasopressor, aumentando a resistência vascular sistêmica e sustentando a pressão arterial.",
+    "erros": {
+      "1": "O efeito vasopressor é justamente o oposto da vasodilatação sistêmica intensa.",
+      "2": "O bloqueio beta-1 não descreve o mecanismo da Noradrenalina.",
+      "3": "Aldosterona e natriurese não explicam a ação vasopressora imediata da Noradrenalina."
+    }
+  },
+  {
+    "caso": "Um paciente com insuficiência cardíaca descompensada recebe Dobutamina. Algumas horas depois, apresenta taquicardia e extrassístoles ventriculares frequentes.",
+    "pergunta": "Qual interpretação é mais adequada?",
+    "alts": [
+      "A Dobutamina pode aumentar a contratilidade, mas também favorecer taquicardia e arritmias, devendo-se reavaliar a infusão diante da toxicidade.",
+      "A Dobutamina é antiarrítmica e a presença de extrassístoles demonstra resposta terapêutica esperada.",
+      "O fármaco reduz a contratilidade e, por isso, a taquicardia indica efeito desejado.",
+      "A Dobutamina não tem qualquer efeito cardiovascular direto; a arritmia é necessariamente independente do medicamento."
+    ],
+    "c": 0,
+    "exp": "<b>Raciocínio:</b> o material apresenta agentes inotrópicos e reconhece taquicardia e arritmias como efeitos adversos possíveis da Dobutamina. Diante desses sinais, a infusão precisa ser reavaliada conforme o quadro hemodinâmico.",
+    "erros": {
+      "1": "A aula não classifica Dobutamina como antiarrítmica; taquicardia e arritmias podem ser efeitos adversos.",
+      "2": "O objetivo inotrópico é aumentar, não reduzir, a contratilidade.",
+      "3": "O efeito cardiovascular do fármaco é justamente parte do motivo pelo qual ele pode causar esse tipo de evento."
+    }
+  },
+  {
+    "caso": "Um paciente com insuficiência cardíaca usa Digoxina. Após episódio de hipocalemia por diurético, passa a apresentar náuseas, arritmias e alteração visual descrita como percepção de halos amarelados.",
+    "pergunta": "Qual relação farmacológica deve ser reconhecida?",
+    "alts": [
+      "A hipocalemia pode aumentar a toxicidade da Digoxina; diante de sintomas compatíveis, é importante avaliar potássio, ECG e digoxinemia.",
+      "Hipocalemia reduz a toxicidade da Digoxina e protege o paciente.",
+      "A hipocalemia atua apenas sobre a absorção da Digoxina e não interfere em sua toxicidade.",
+      "Halos visuais são incompatíveis com Digoxina e indicam obrigatoriamente intoxicação por estatina."
+    ],
+    "c": 0,
+    "exp": "<b>Raciocínio:</b> o material cardiovascular destaca náuseas, alterações visuais e arritmias como sinais de toxicidade da Digoxina e ressalta que hipocalemia agrava esse risco. A investigação deve incluir potássio, ECG e digoxinemia quando houver suspeita.",
+    "erros": {
+      "1": "O material afirma o contrário: hipocalemia agrava a toxicidade digitálica.",
+      "2": "O risco não é apenas farmacocinético de absorção; envolve a susceptibilidade à toxicidade.",
+      "3": "Halos amarelados são um achado clássico apresentado na aula para toxicidade da Digoxina."
+    }
+  },
+  {
+    "caso": "Um paciente com IC-FEr permanece em ritmo sinusal, mas mantém frequência cardíaca de 88 bpm apesar de betabloqueador em dose otimizada. A equipe discute outra estratégia farmacológica apresentada no material.",
+    "pergunta": "Qual fármaco atua reduzindo a frequência cardíaca por ação no nodo sinusal, sem ser um bloqueador beta-adrenérgico?",
+    "alts": [
+      "Ivabradina.",
+      "Ezetimiba.",
+      "Espironolactona.",
+      "Sacubitril."
+    ],
+    "c": 0,
+    "exp": "<b>Raciocínio:</b> o material apresenta Ivabradina como opção na IC-FEr para redução da frequência cardíaca em pacientes selecionados, com mecanismo relacionado à corrente do nodo sinusal. Ela não é um betabloqueador.",
+    "erros": {
+      "1": "Ezetimiba atua sobre a absorção intestinal de colesterol.",
+      "2": "Espironolactona é antagonista mineralocorticoide.",
+      "3": "Sacubitril faz parte do ARNI e inibe neprilisina."
+    }
+  },
+  {
+    "caso": "Um homem com hipertensão e asma usa um betabloqueador não seletivo. Depois da introdução do medicamento, apresenta piora de sibilância e maior necessidade de broncodilatador de resgate.",
+    "pergunta": "Qual princípio farmacológico deve orientar a revisão da terapia?",
+    "alts": [
+      "O bloqueio beta-adrenérgico pode agravar a broncoconstrição em pacientes asmáticos; o risco deve ser considerado na escolha do betabloqueador.",
+      "Todo betabloqueador causa broncodilatação e, portanto, a piora respiratória exclui relação com o fármaco.",
+      "O mecanismo decorre de bloqueio de receptores muscarínicos nos brônquios.",
+      "A asma protege contra efeitos respiratórios de betabloqueadores e permite aumento livre da dose."
+    ],
+    "c": 0,
+    "exp": "<b>Raciocínio:</b> o material de revisão inclui a questão sobre efeitos dos betabloqueadores na via aérea e chama atenção para o uso em pacientes asmáticos. A piora da sibilância após introdução do fármaco deve levar à revisão da indicação e do perfil do agente.",
+    "erros": {
+      "1": "Betabloqueio não produz broncodilatação como regra; agentes não seletivos podem piorar broncoconstrição.",
+      "2": "Receptores muscarínicos pertencem ao sistema colinérgico e não explicam o mecanismo descrito.",
+      "3": "A asma não protege contra o risco; ela aumenta a importância dessa avaliação."
+    }
+  },
+  {
+    "caso": "Uma mulher usa Atorvastatina 40 mg/dia e apresenta AST/ALT aproximadamente três vezes acima do limite superior da normalidade, sem sintomas musculares e sem outras causas evidentes no momento.",
+    "pergunta": "Qual abordagem é mais coerente com o material de revisão?",
+    "alts": [
+      "Reavaliar o padrão de elevação, causas alternativas e o contexto clínico antes de decidir pela manutenção, ajuste ou suspensão da terapia.",
+      "Ignorar os resultados porque estatinas nunca alteram transaminases.",
+      "Duplicar a dose da estatina imediatamente, independentemente do contexto laboratorial.",
+      "Suspender definitivamente qualquer estatina no primeiro valor alterado, sem confirmação ou avaliação clínica."
+    ],
+    "c": 0,
+    "exp": "<b>Raciocínio:</b> o material destaca elevação de transaminases como possível efeito das estatinas e orienta interpretar o achado no contexto clínico, com reavaliação antes de decisões definitivas. Não se trata de abandonar automaticamente toda terapia estatínica diante de qualquer alteração isolada.",
+    "erros": {
+      "1": "O material reconhece elevação de transaminases como possível efeito adverso.",
+      "2": "Aumentar a dose sem avaliar segurança pode ampliar a exposição e o risco.",
+      "3": "A decisão deve considerar gravidade, confirmação e contexto, não uma regra automática de suspensão definitiva."
+    }
+  },
+  {
+    "caso": "Um homem de 52 anos apresenta hipertensão persistente. A equipe decide iniciar tratamento com dois fármacos de classes complementares para atingir a meta mais rapidamente.",
+    "pergunta": "Qual estratégia inicial está de acordo com o material cardiovascular?",
+    "alts": [
+      "Dois betabloqueadores diferentes como regra para todo paciente hipertenso.",
+      "Apenas nitrato em monoterapia para qualquer nível de pressão arterial.",
+      "Pioglitazona associada a Sulfonilureia como tratamento de primeira linha da hipertensão.",
+      "IECA ou BRA associado a bloqueador de canal de cálcio ou diurético tiazídico."
+    ],
+    "c": 3,
+    "exp": "<b>Raciocínio:</b> no fechamento da aula cardiovascular, a terapia combinada inicial apresentada é IECA/BRA associada a BCC ou tiazídico. O objetivo é controlar a pressão com classes de mecanismos complementares.",
+    "erros": {
+      "0": "Dois betabloqueadores não constituem a estratégia combinada padrão descrita no material.",
+      "1": "Nitratos não são apresentados como monoterapia universal da hipertensão.",
+      "2": "As duas drogas citadas são antidiabéticas e não formam o esquema anti-hipertensivo descrito."
+    }
+  },
+  {
+    "caso": "Um paciente em uso de Amiodarona e Varfarina apresenta aumento progressivo do INR após o início da antiarrítmica, sem outra mudança evidente no esquema.",
+    "pergunta": "Qual mecanismo e conduta são mais compatíveis com o material?",
+    "alts": [
+      "A Amiodarona pode reduzir o metabolismo da Varfarina; a dose do anticoagulante pode precisar de redução e o INR deve ser monitorado de perto.",
+      "A Amiodarona induz rapidamente a CYP2C9 e reduz o INR, portanto a Varfarina deve ser aumentada.",
+      "A interação ocorre apenas por aumento da absorção intestinal de Varfarina e não requer monitorização.",
+      "O aumento do INR exclui qualquer relação farmacológica e deve ser tratado apenas com aumento da Amiodarona."
+    ],
+    "c": 0,
+    "exp": "<b>Raciocínio:</b> o material cardiovascular apresenta Amiodarona + Varfarina como interação importante por redução do metabolismo da Varfarina. A consequência é aumento da exposição e do INR, sendo indicada revisão da dose e monitorização mais próxima.",
+    "erros": {
+      "1": "O material associa Amiodarona à inibição/redução do metabolismo da Varfarina, não indução com queda de INR.",
+      "2": "A interação destacada é metabólica e pode ter repercussão clínica importante.",
+      "3": "O aumento do INR é justamente um dado que reforça a suspeita de interação."
+    }
+  },
+  {
+    "caso": "Um homem com DM2 e uso prolongado de Metformina relata fadiga e parestesias. Hemograma mostra anemia macrocítica e a dosagem de vitamina B12 está reduzida.",
+    "pergunta": "Qual interpretação está de acordo com o material de endocrinologia?",
+    "alts": [
+      "Metformina aumenta obrigatoriamente os níveis de B12 e protege contra anemia macrocítica.",
+      "A deficiência de vitamina B12 pode ocorrer durante uso prolongado de Metformina e deve ser considerada diante de anemia ou neuropatia compatíveis.",
+      "A alteração é explicada por excesso de glucagon provocado pela Metformina.",
+      "A Metformina causa apenas hipoglicemia e não possui qualquer relação com vitamina B12."
+    ],
+    "c": 1,
+    "exp": "<b>Raciocínio:</b> a aula de endocrinopatias recomenda considerar monitorização de vitamina B12 em uso prolongado de Metformina, especialmente diante de anemia, neuropatia ou outros sinais compatíveis.",
+    "erros": {
+      "0": "O material destaca o risco de redução/deficiência de B12, não proteção.",
+      "2": "Esse não é o mecanismo apresentado para a Metformina.",
+      "3": "A deficiência de B12 é explicitamente incluída como questão de segurança do uso prolongado."
+    }
+  },
+  {
+    "caso": "Uma mulher com DM2 em uso de Empagliflozina retorna com prurido genital, disúria e secreção sugestiva de candidíase. Ela não apresenta sinais sistêmicos de infecção.",
+    "pergunta": "Qual relação farmacológica deve ser reconhecida?",
+    "alts": [
+      "Infecções genitais são impossíveis com iSGLT2 porque o fármaco reduz a glicose urinária.",
+      "O quadro é consequência direta de bloqueio beta-1 cardíaco causado pela Empagliflozina.",
+      "A melhor explicação é agranulocitose, pois toda infecção em diabético corresponde a neutropenia medicamentosa.",
+      "A glicosúria induzida pelo iSGLT2 pode favorecer infecções genitais, um efeito adverso conhecido da classe."
+    ],
+    "c": 3,
+    "exp": "<b>Raciocínio:</b> o material de endocrinologia destaca infecções geniturinárias como alerta dos iSGLT2. O mecanismo de glicosúria/natriurese aumenta a disponibilidade de glicose na urina e ajuda a contextualizar esse efeito adverso.",
+    "erros": {
+      "0": "A classe produz glicosúria, não redução da glicose urinária.",
+      "1": "Empagliflozina não é betabloqueador.",
+      "2": "Agranulocitose é uma toxicidade hematológica destacada para Clozapina, não para iSGLT2."
+    }
+  },
+  {
+    "caso": "Um paciente com DM2, IC e uso de Dapagliflozina apresenta dois dias de vômitos e diarreia, com tontura e sinais de desidratação. A glicemia não está particularmente elevada.",
+    "pergunta": "Qual conduta de segurança está mais alinhada ao material?",
+    "alts": [
+      "Manter obrigatoriamente o iSGLT2 sem qualquer reavaliação, pois desidratação não modifica a farmacologia.",
+      "Aumentar a dose do iSGLT2 para compensar a perda de líquidos.",
+      "Considerar suspensão temporária do iSGLT2 durante doença aguda com desidratação e reavaliar a terapia após estabilização clínica.",
+      "Adicionar Pioglitazona imediatamente para prevenir cetoacidose e proteger o rim."
+    ],
+    "c": 2,
+    "exp": "<b>Raciocínio:</b> o material inclui desidratação e doença aguda entre situações que exigem cautela com iSGLT2. A prioridade é reconhecer o risco, interromper temporariamente quando indicado e retomar após recuperação clínica adequada.",
+    "erros": {
+      "0": "O material orienta atenção especial em doença aguda e desidratação, não manutenção automática.",
+      "1": "Aumentar a dose em contexto de desidratação não é estratégia de segurança.",
+      "3": "Pioglitazona não é medida de prevenção de cetoacidose e pode causar retenção hídrica."
+    }
+  },
+  {
+    "caso": "Uma paciente com DM2 e obesidade em uso de agonista de GLP-1 chega ao pronto-socorro com dor abdominal intensa, náuseas e vômitos. Amilase e lipase estão elevadas.",
+    "pergunta": "Qual evento adverso deve entrar prioritariamente no raciocínio?",
+    "alts": [
+      "Agranulocitose, efeito hematológico típico dos agonistas de GLP-1.",
+      "Tireotoxicose causada diretamente pelo excesso de TSH.",
+      "Pancreatite, que é um sinal de alerta descrito para agonistas de GLP-1 e exige avaliação clínica do caso.",
+      "Broncoespasmo como efeito farmacológico principal da classe."
+    ],
+    "c": 2,
+    "exp": "<b>Raciocínio:</b> o material de questões de endocrinologia inclui a pancreatite entre os eventos adversos que devem ser considerados diante de dor abdominal intensa e enzimas pancreáticas elevadas em uso de agonista de GLP-1.",
+    "erros": {
+      "0": "Agranulocitose é destacada na aula para Clozapina.",
+      "1": "TSH elevado não descreve tireotoxicose e não é o mecanismo do agonista de GLP-1.",
+      "3": "Broncoespasmo não é o efeito adverso principal apresentado para essa classe."
+    }
+  },
+  {
+    "caso": "Uma paciente com hipotireoidismo manifesta dificuldade de controle do TSH após iniciar um inibidor de bomba de prótons. Ela afirma manter a mesma dose de Levotiroxina e a mesma adesão.",
+    "pergunta": "Qual hipótese deve ser investigada antes de simplesmente aumentar a dose?",
+    "alts": [
+      "O IBP sempre aumenta a produção endógena de T4, portanto o TSH deve cair.",
+      "Alteração da absorção da Levotiroxina por mudança do ambiente gastrointestinal, associada ao uso do IBP, devendo-se revisar rotina e reavaliar o TSH.",
+      "O IBP causa indução da CYP2C9 e aumenta a depuração da Levotiroxina obrigatoriamente.",
+      "O TSH não sofre influência de absorção e deve ser ignorado até um ano após qualquer mudança medicamentosa."
+    ],
+    "c": 1,
+    "exp": "<b>Raciocínio:</b> o material de endocrinologia orienta revisar causas de alteração na absorção da Levotiroxina, incluindo mudanças gastrointestinais e uso de IBP, antes de escalar a dose. O TSH deve ser reavaliado após intervalo adequado.",
+    "erros": {
+      "0": "O efeito discutido é sobre absorção e não aumento da produção endógena de T4.",
+      "2": "O mecanismo apresentado no material é relacionado à absorção, não uma regra de CYP2C9.",
+      "3": "TSH é o marcador principal na doença primária e deve ser acompanhado em intervalo adequado."
+    }
+  },
+  {
+    "caso": "Uma mulher toma altas doses de biotina por conta própria. Seus exames mostram TSH falsamente baixo e T4 livre falsamente alto, apesar de não apresentar sintomas compatíveis com hipertireoidismo.",
+    "pergunta": "Qual explicação está de acordo com o material?",
+    "alts": [
+      "A biotina sempre aumenta a síntese de hormônio tireoidiano e explica obrigatoriamente o quadro clínico.",
+      "A biotina pode interferir em alguns ensaios laboratoriais e produzir esse padrão artefatual, devendo ser considerada antes de interpretar os resultados.",
+      "A biotina induz a CYP3A4 e reduz o metabolismo do T4 livre.",
+      "O padrão confirma hipertireoidismo verdadeiro, sem necessidade de revisar suplementos."
+    ],
+    "c": 1,
+    "exp": "<b>Raciocínio:</b> a aula de tireoide chama atenção para doses altas de biotina como causa de interferência em alguns ensaios, levando a TSH falsamente baixo e T4L falsamente alto. Por isso, o uso de suplementos deve ser investigado antes de concluir que houve mudança real do eixo tireoidiano.",
+    "erros": {
+      "0": "O material atribui à biotina uma interferência laboratorial, não aumento obrigatório da síntese hormonal.",
+      "2": "A biotina não é apresentada como indutora de CYP3A4 nesse contexto.",
+      "3": "O resultado pode ser artefactual e o histórico de suplemento é uma pista para isso."
+    }
+  },
+  {
+    "caso": "Um adulto com sintomas inespecíficos apresenta TSH persistentemente elevado, mas T4 livre dentro da faixa de referência em avaliações repetidas. Não há emergência clínica e a equipe discute a melhor estratégia antes de iniciar tratamento definitivo.",
+    "pergunta": "Qual abordagem é mais compatível com o material?",
+    "alts": [
+      "Iniciar T3 imediatamente em todos os pacientes, sem repetir exames ou avaliar contexto.",
+      "Confirmar a persistência do achado, revisar contexto clínico e discutir uma estratégia limitada/individualizada quando apropriado, em vez de assumir tratamento permanente automaticamente.",
+      "Considerar o resultado isolado como diagnóstico definitivo de hipotireoidismo manifesto e tratar para toda a vida sem nova avaliação.",
+      "Indicar radioiodo como primeira opção para qualquer TSH elevado com T4 livre normal."
+    ],
+    "c": 1,
+    "exp": "<b>Raciocínio:</b> o material aborda TSH persistentemente elevado com T4L normal como situação que exige confirmação da persistência e consideração do contexto. A decisão não deve ser transformada automaticamente em tratamento definitivo para todos os pacientes.",
+    "erros": {
+      "0": "O material não propõe T3 como resposta automática para essa situação.",
+      "2": "TSH elevado com T4L normal não é tratado no material como indicação automática de terapia definitiva para a vida inteira.",
+      "3": "Radioiodo é uma estratégia relacionada a contextos específicos de hipertireoidismo, não ao cenário descrito."
+    }
+  }
+];
+
+/* =========================================================
+   ESTADO + PERSISTÊNCIA (localStorage)
+   ========================================================= */
+const KEY = "simuladoFarmacologiaClinica_50q_bateria2_v1";
+const LET = ["A","B","C","D"];
+let mapFilter = "all";
+
+function fresh(){ return {view:"start", cur:0, ans:{}, subset:null}; }
+function load(){
+  try{
+    const raw = localStorage.getItem(KEY);
+    if(!raw) return fresh();
+    const d = JSON.parse(raw);
+    if(!d || typeof d !== "object" || typeof d.ans !== "object") return fresh();
+    const s = Object.assign(fresh(), d);
+    s.cur = Math.min(Math.max(0, parseInt(s.cur,10)||0), Q.length-1);
+    Object.keys(s.ans).forEach(k=>{ const v=s.ans[k]; if(!(k in Q) || typeof v!=="number" || v<0 || v>3) delete s.ans[k]; });
+    if(s.subset && (!Array.isArray(s.subset) || !s.subset.length)) s.subset = null;
+    return s;
+  }catch(e){ return fresh(); }
+}
+function save(){ try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch(e){} }
+let S = load();
+
+const allIdx = () => Q.map((_,i)=>i);
+const list = () => (S.subset && S.subset.length) ? S.subset : allIdx();
+const posInList = () => { const p = list().indexOf(S.cur); return p<0 ? 0 : p; };
+const status = i => S.ans[i]===undefined ? "blank" : (S.ans[i]===Q[i].c ? "ok" : "err");
+const pad = n => String(n).padStart(2,"0");
+
+/* =========================================================
+   RENDER
+   ========================================================= */
+const $ = id => document.getElementById(id);
+
+function show(view){
+  S.view = view; save();
+  ["vStart","vQuiz","vResult"].forEach(v=>$(v).classList.remove("on"));
+  $({start:"vStart",quiz:"vQuiz",result:"vResult"}[view]).classList.add("on");
+  closeMap();
+  if(view==="start") renderStart();
+  if(view==="quiz") renderQ();
+  if(view==="result") renderResult();
+  renderTop();
+  window.scrollTo(0,0);
+}
+
+function renderTop(){
+  const l = list();
+  if(S.view==="quiz"){
+    $("counter").innerHTML = `<strong>${pad(posInList()+1)}</strong>/${pad(l.length)}`;
+  } else {
+    $("counter").innerHTML = `<strong>${pad(Object.keys(S.ans).length)}</strong>/${pad(Q.length)}`;
+  }
+  const answered = l.filter(i=>S.ans[i]!==undefined).length;
+  $("prog").style.width = (answered/l.length*100)+"%";
+  $("btnFinish").textContent = S.view==="result" ? "Resultado" : "Finalizar";
+}
+
+function renderStart(){
+  const n = Object.keys(S.ans).length;
+  $("stTotal").textContent = Q.length;
+  $("stDone").textContent = n;
+  $("btnStart").textContent = n>0 ? "Continuar" : "Iniciar";
+  $("btnRestartFromStart").style.display = n>0 ? "inline-flex" : "none";
+}
+
+function renderQ(){
+  const i = S.cur, q = Q[i], a = S.ans[i];
+  $("qNum").innerHTML = `Questão ${pad(i+1)} <em>/ ${pad(Q.length)}</em>`;
+  $("modeTag").style.display = S.subset ? "inline" : "none";
+  $("qCase").textContent = q.caso;
+  $("qAsk").textContent = q.pergunta;
+
+  const box = $("qOpts"); box.innerHTML = "";
+  q.alts.forEach((t,k)=>{
+    const b = document.createElement("button");
+    b.className = "opt";
+    b.setAttribute("aria-label", `Alternativa ${LET[k]}: ${t}`);
+    b.innerHTML = `<span class="k">${LET[k]}</span><span class="t"></span>`;
+    b.querySelector(".t").textContent = t;
+    if(a!==undefined){
+      b.disabled = true;
+      if(k===q.c) b.classList.add("correct");
+      else if(k===a) b.classList.add("wrong");
+      else b.classList.add("faded");
+    } else {
+      b.addEventListener("click",()=>answer(k));
+    }
+    box.appendChild(b);
+  });
+
+  const fb = $("fb");
+  if(a===undefined){ fb.classList.remove("on"); fb.innerHTML=""; }
+  else{
+    const ok = a===q.c;
+    let items = "";
+    for(let k=0;k<4;k++){
+      if(k===q.c) continue;
+      items += `<li><span class="k">${LET[k]}</span><span>${q.erros[k]||""}</span></li>`;
+    }
+    fb.innerHTML =
+      `<div class="fb-status ${ok?"ok":"err"}"><span class="dot"></span>${ok?"Resposta correta":"Resposta incorreta"}<span class="gab">gabarito ${LET[q.c]}${ok?"":" | sua resposta "+LET[a]}</span></div>`+
+      `<div class="fb-block"><h4>Explicação</h4><p>${q.exp}</p></div>`+
+      `<div class="fb-block"><h4>Análise das alternativas</h4><ul class="fb-list">${items}</ul></div>`;
+    fb.classList.add("on");
+  }
+
+  const p = posInList(), l = list();
+  $("btnPrev").disabled = p===0;
+  $("btnNext").textContent = p===l.length-1 ? "Ver resultado" : "Próxima";
+  renderTop();
+  if(isMapOpen()) renderMap();
+}
+
+function answer(k){
+  if(S.view!=="quiz" || S.ans[S.cur]!==undefined) return;
+  S.ans[S.cur] = k; save();
+  renderQ();
+  setTimeout(()=>{
+    const fb=$("fb"); const r=fb.getBoundingClientRect();
+    if(r.top > window.innerHeight*0.75){
+      const reduce = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+      fb.scrollIntoView({behavior:reduce?"auto":"smooth",block:"start"});
+    }
+  },40);
+}
+
+function go(delta){
+  const l = list(); const p = posInList() + delta;
+  if(p<0) return;
+  if(p>=l.length){ requestFinish(); return; }
+  S.cur = l[p]; save(); renderQ(); window.scrollTo(0,0);
+}
+function goTo(i){
+  if(S.subset && !S.subset.includes(i)) S.subset = null;
+  S.cur = i; save(); closeMap();
+  if(S.view!=="quiz") show("quiz"); else { renderQ(); window.scrollTo(0,0); }
+}
+
+/* ---------- Resultado ---------- */
+function tally(){
+  let ok=0, err=0, blank=0;
+  Q.forEach((_,i)=>{ const s=status(i); if(s==="ok")ok++; else if(s==="err")err++; else blank++; });
+  return {ok,err,blank};
+}
+function renderResult(){
+  const t = tally(), pct = Math.round(t.ok/Q.length*100);
+  $("rPct").innerHTML = `${pct}<small>%</small>`;
+  $("rOk").textContent = t.ok; $("rErr").textContent = t.err; $("rBlank").textContent = t.blank;
+  $("rBar").innerHTML = `<i style="width:${t.ok/Q.length*100}%;background:var(--ok)"></i><i style="width:${t.err/Q.length*100}%;background:var(--err)"></i>`;
+  let v;
+  if(pct>=80) v = "Desempenho sólido. Revise as questões erradas para consolidar o raciocínio.";
+  else if(pct>=60) v = "Bom caminho. Refaça as erradas e releia as explicações dos temas com dúvida.";
+  else v = "Vale revisar os conceitos-base e refazer as questões erradas antes de um novo simulado.";
+  if(t.blank>0) v += ` Ficaram ${t.blank} ${t.blank===1?"questão":"questões"} em branco.`;
+  $("rVerdict").textContent = v;
+  $("btnRedo").disabled = t.err===0;
+}
+function requestFinish(){
+  const t = tally();
+  const done = ()=>{ S.subset = null; show("result"); };
+  if(t.blank>0){
+    confirmBox("Finalizar simulado?",
+      `Há ${t.blank} ${t.blank===1?"questão":"questões"} em branco. Elas serão contadas como não respondidas.`,
+      "Finalizar", done);
+  } else done();
+}
+
+/* ---------- Mapa ---------- */
+function isMapOpen(){ return $("map").classList.contains("open"); }
+function toggleMap(){ isMapOpen() ? closeMap() : openMap(); }
+function openMap(){ renderMap(); $("map").classList.add("open"); $("btnMap").setAttribute("aria-expanded","true"); }
+function closeMap(){ $("map").classList.remove("open"); $("btnMap").setAttribute("aria-expanded","false"); }
+function renderMap(){
+  const g = $("mapGrid"); g.innerHTML = "";
+  let shown = 0;
+  Q.forEach((q,i)=>{
+    const s = status(i);
+    if(mapFilter==="wrong" && s!=="err") return;
+    if(mapFilter==="blank" && s!=="blank") return;
+    shown++;
+    const b = document.createElement("button");
+    b.className = "cell" + (s==="ok"?" ok":s==="err"?" err":"") +
+      (S.view==="quiz" && i===S.cur ? " cur" : "") +
+      (S.subset && !S.subset.includes(i) ? " dim" : "");
+    b.textContent = pad(i+1);
+    b.title = `Questão ${pad(i+1)}`;
+    b.addEventListener("click",()=>goTo(i));
+    g.appendChild(b);
+  });
+  if(!shown){
+    g.innerHTML = `<div class="map-empty" style="grid-column:1/-1">${mapFilter==="wrong"?"Nenhuma questão errada.":"Nenhuma questão em branco."}</div>`;
+  }
+  document.querySelectorAll(".chip").forEach(c=>c.classList.toggle("on", c.dataset.f===mapFilter));
+}
+
+/* ---------- Modal de confirmação ---------- */
+let modalCb = null;
+function confirmBox(title, text, okLabel, cb, danger){
+  $("mTitle").textContent = title; $("mText").textContent = text;
+  const ok = $("mOk"); ok.textContent = okLabel;
+  ok.className = "btn " + (danger ? "danger" : "primary");
+  modalCb = cb; closeMap();
+  $("modal").classList.add("open"); ok.focus();
+}
+function closeModal(){ $("modal").classList.remove("open"); modalCb = null; }
+const modalOpen = () => $("modal").classList.contains("open");
+
+function resetAll(){ S = fresh(); mapFilter = "all"; save(); show("start"); }
+
+/* =========================================================
+   EVENTOS
+   ========================================================= */
+$("btnStart").addEventListener("click",()=>{
+  const l = list();
+  if(!l.includes(S.cur)) S.cur = l[0];
+  if(S.ans[S.cur]!==undefined){
+    const firstBlank = l.find(i=>S.ans[i]===undefined);
+    if(firstBlank!==undefined) S.cur = firstBlank;
+  }
+  show("quiz");
+});
+$("btnRestartFromStart").addEventListener("click",()=>confirmBox("Começar do zero?","Todas as respostas salvas serão apagadas.","Apagar e recomeçar",resetAll,true));
+$("btnHome").addEventListener("click",()=>show("start"));
+$("btnMap").addEventListener("click",e=>{ e.stopPropagation(); toggleMap(); });
+$("btnReset").addEventListener("click",()=>confirmBox("Reiniciar simulado?","Todas as respostas e o progresso salvo serão apagados.","Reiniciar",resetAll,true));
+$("btnFinish").addEventListener("click",()=>{ if(S.view==="result") return; requestFinish(); });
+$("btnPrev").addEventListener("click",()=>go(-1));
+$("btnNext").addEventListener("click",()=>go(1));
+$("btnReview").addEventListener("click",()=>{ S.subset = null; S.cur = 0; show("quiz"); });
+$("btnRedo").addEventListener("click",()=>{
+  const wrong = allIdx().filter(i=>status(i)==="err");
+  if(!wrong.length) return;
+  wrong.forEach(i=>{ delete S.ans[i]; });
+  S.subset = wrong; S.cur = wrong[0]; show("quiz");
+});
+$("btnResHome").addEventListener("click",()=>show("start"));
+document.querySelectorAll(".chip").forEach(c=>c.addEventListener("click",e=>{ e.stopPropagation(); mapFilter = c.dataset.f; renderMap(); }));
+$("map").addEventListener("click",e=>e.stopPropagation());
+document.addEventListener("click",()=>{ if(isMapOpen()) closeMap(); });
+$("mCancel").addEventListener("click",closeModal);
+$("mOk").addEventListener("click",()=>{ const cb = modalCb; closeModal(); if(cb) cb(); });
+$("modal").addEventListener("click",e=>{ if(e.target.id==="modal") closeModal(); });
+
+document.addEventListener("keydown",e=>{
+  if(e.ctrlKey || e.metaKey || e.altKey) return;
+  const k = e.key;
+  if(modalOpen()){
+    if(k==="Escape"){ e.preventDefault(); closeModal(); }
+    else if(k==="Enter"){ e.preventDefault(); $("mOk").click(); }
+    return;
+  }
+  if(k==="Escape" && isMapOpen()){ closeMap(); return; }
+  if(S.view==="start"){
+    if(k==="Enter"){ e.preventDefault(); $("btnStart").click(); }
+    return;
+  }
+  if(k==="m" || k==="M"){ e.preventDefault(); toggleMap(); return; }
+  if(S.view!=="quiz") return;
+  const up = k.length===1 ? k.toUpperCase() : "";
+  if(LET.includes(up)){ e.preventDefault(); answer(LET.indexOf(up)); return; }
+  if(k==="ArrowRight"){ e.preventDefault(); go(1); return; }
+  if(k==="ArrowLeft"){ e.preventDefault(); go(-1); return; }
+  if(k==="Enter"){
+    const t = document.activeElement;
+    // Se o foco estiver num botão da interface (exceto alternativas/Próxima), deixa o botão agir
+    if(t && t.tagName==="BUTTON" && !t.classList.contains("opt") && t.id!=="btnNext") return;
+    e.preventDefault(); go(1);
+  }
+});
+
+/* Inicialização */
+show(["start","quiz","result"].includes(S.view) ? S.view : "start");
+</script>
+</body>
+</html>
